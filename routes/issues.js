@@ -10,7 +10,21 @@ var express = require("express"),
 
 app.use(bodyParser.json());
 router.post('/', function (req, res) {
-    res.json(req.headers);
+    var issue = req.body,
+        project = issue.project.name,
+        url = issue.object_attributes.url,
+        title = issue.object_attributes.title,
+        description = issue.object_attributes.description;
+
+    var result = {
+            project: project,
+            url: url,
+            title: title,
+            description: description
+        };
+
+        console.log(result);
+    res.json(result);
 });
 
 module.exports = router;
