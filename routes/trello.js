@@ -14,7 +14,7 @@ require('dotenv').config();
 
 app.set('trello api host', 'api.trello.com');
 
-app.use(bodyParser.json());
+// app.use(bodyParser.raw());
 
 router.get('/', function(req, res) {
     res.send('This hooks to Trello');
@@ -36,16 +36,27 @@ router.post('/', function (req, res) {
         return;
     }
 
+    var body = '';
+    req.on('data', function(chunk) {
+        body += chunk.toString();
+    });
+
+    var handler = '';
     switch(type) {
         case 'Issue Hook':
-            handleIssue(req, res);
+            handler = handleIssue;
             break;
         default:
             res.send('Unknown request type');
+            return;
     }
 
+    req.on('end', function() {
+        handler(req, res);
+    });
+
     function handleIssue(req, res) {
-        var issue = req.body,
+        var issue = JSON.parse(body),
             cardData = {
                 key: trelloKey,
                 token: trelloToken,
