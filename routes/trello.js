@@ -15,10 +15,24 @@ require('dotenv').config();
 app.set('trello api host', 'api.trello.com');
 
 app.use(bodyParser.json());
-router.post('/', function (req, res) {
-    var issue = req.body;
 
-    var cardData = {
+router.post('/', function (req, res) {
+    console.log(req.headers);
+    var type = req.headers['x-gitlab-event'];
+
+    switch(type) {
+        case 'Issue Hook':
+            handleIssue(req, res);
+            break;
+        default:
+            res.send('Unknown request type');
+    }
+
+});
+
+function handleIssue(req, res) {
+    var issue = req.body,
+        cardData = {
             name: issue.project.name + ' - ' + issue.object_attributes.title,
             desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
         };
@@ -29,14 +43,12 @@ router.post('/', function (req, res) {
     
     createCard(cardData, function(err, data) {
         if(err) {
-            res.sendStatus(500);
-            res.end(err.message);
+            res.end('Error: ' + err.message);
         } else {
-            res.sendStatus(200);
             res.end(data);
         }
     });
-});
+}
 
 function createCard(data, callback) {
     data.key = data.key || process.env.TRELLO_KEY;
@@ -55,7 +67,7 @@ function createCard(data, callback) {
         };
 
     var req = https.request(options, function(res) {
-        var body='';
+        var body = '';
         res.on('data', function(chunk) {
             body += chunk;
         });
