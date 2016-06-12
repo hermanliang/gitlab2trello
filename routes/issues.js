@@ -16,18 +16,18 @@ app.set('trello api host', 'api.trello.com');
 
 app.use(bodyParser.json());
 router.post('/', function (req, res) {
-    var issue = req.body,
-        project = issue.project.name,
-        url = issue.object_attributes.url,
-        title = issue.object_attributes.title,
-        desc = issue.object_attributes.description;
+    var issue = req.body;
 
-    var result = {
-            name: project + ' - ' + title,
-            desc: desc + "\n" + url
+    var cardData = {
+            name: issue.project.name + ' - ' + issue.object_attributes.title,
+            desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
         };
 
-    createCard(result, function(err, data) {
+    for (var queryKey in req.query) {
+        cardData[queryKey] = req.query[queryKey];
+    }
+    
+    createCard(cardData, function(err, data) {
         if(err) {
             res.sendStatus(500);
             res.end(err.message);
@@ -38,22 +38,10 @@ router.post('/', function (req, res) {
     });
 });
 
-function getIdList() {
-    return process.env.TRELLO_LIST;
-}
-
-function getKey() {
-    return process.env.TRELLO_KEY;
-}
-
-function getToken() {
-    return process.env.TRELLO_TOKEN;
-}
-
 function createCard(data, callback) {
-    data.key = getKey();
-    data.token = getToken();
-    data.idList = getIdList();
+    data.key = data.key || process.env.TRELLO_KEY;
+    data.token = data.token || process.env.TRELLO_TOKEN;
+    data.idList = data.list || process.env.TRELLO_LIST;
     var formData = queryString.stringify(data);
 
     var options = {
