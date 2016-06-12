@@ -16,9 +16,25 @@ app.set('trello api host', 'api.trello.com');
 
 app.use(bodyParser.json());
 
+router.get('/', function(req, res) {
+    res.send('This hooks to Trello');
+});
+
 router.post('/', function (req, res) {
-    console.log(req.headers);
-    var type = req.headers['x-gitlab-event'];
+    var type = req.headers['x-gitlab-event'],
+        trelloKey = req.query.key || process.env.TRELLO_KEY,
+        trelloToken = req.query.token || process.env.TRELLO_TOKEN,
+        idList = req.query.list || process.env.TRELLO_LIST;
+
+    if(!trelloKey || !trelloToken) {
+        res.send('Invalid key or token');
+        return;
+    }
+
+    if(!idList) {
+        res.send('Please speficy List ID');
+        return;
+    }
 
     switch(type) {
         case 'Issue Hook':
@@ -28,65 +44,62 @@ router.post('/', function (req, res) {
             res.send('Unknown request type');
     }
 
-});
-
-function handleIssue(req, res) {
-    var issue = req.body,
-        cardData = {
-            name: issue.project.name + ' - ' + issue.object_attributes.title,
-            desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
-        };
-
-    for (var queryKey in req.query) {
-        cardData[queryKey] = req.query[queryKey];
-    }
-    
-    createCard(cardData, function(err, data) {
-        if(err) {
-            res.end('Error: ' + err.message);
-        } else {
-            res.end(data);
-        }
-    });
-}
-
-function createCard(data, callback) {
-    data.key = data.key || process.env.TRELLO_KEY;
-    data.token = data.token || process.env.TRELLO_TOKEN;
-    data.idList = data.list || process.env.TRELLO_LIST;
-    var formData = queryString.stringify(data);
-
-    var options = {
-            hostname: app.get('trello api host'),
-            path: '/1/cards',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': formData.length
+    function handleIssue(req, res) {
+        var issue = req.body,
+            cardData = {
+                key: trelloKey,
+                token: trelloToken,
+                idList: idList,
+                name: issue.project.name + ' - ' + issue.object_attributes.title,
+                desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
+            };
+        
+        createCard(cardData, function(err, data) {
+            if(err) {
+                res.send('Error: ' + err.message);
+            } else {
+                res.send(data);
             }
-        };
+        });
+    }
 
-    var req = https.request(options, function(res) {
-        var body = '';
-        res.on('data', function(chunk) {
-            body += chunk;
+    function createCard(data, callback) {
+        var formData = queryString.stringify(data);
+
+        var options = {
+                hostname: app.get('trello api host'),
+                path: '/1/cards',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': formData.length
+                }
+            };
+
+        var req = https.request(options, function(res) {
+            var body = '';
+            res.on('data', function(chunk) {
+                body += chunk;
+            });
+
+            res.on('end', function() {
+                callback(null, body);
+            });
+
+            res.on('error', function(e) {
+                callback(e, null);
+            })
         });
 
-        res.on('end', function() {
-            callback(null, body);
-        });
-
-        res.on('error', function(e) {
+        req.on('error', function(e) {
             callback(e, null);
         })
-    });
 
-    req.on('error', function(e) {
-        callback(e, null);
-    })
+        req.write(formData);
+        req.end();
+    }
 
-    req.write(formData);
-    req.end();
-}
+});
+
 
 module.exports = router;
