@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index'),
-    users = require('./routes/users'),
     trello = require('./routes/trello'),
     debug = require('./routes/debug');
 
@@ -25,7 +24,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/users', users);
 app.use('/trello', trello);
 app.use('/debug', debug);
 
