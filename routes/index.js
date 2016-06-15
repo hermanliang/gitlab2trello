@@ -10,7 +10,7 @@ router.get('/', function(req, res, next) {
   mongo.connect(mongoUrl, function (err, db) {
     var collection = db.collection('headers');
     collection.find().toArray(function(err, documents) {
-      res.render('index', { title: 'Hooker', headers: JSON.stringify(documents) });
+      res.json(documents);
       db.close();
     })
   })
