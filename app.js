@@ -7,7 +7,8 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index'),
     users = require('./routes/users'),
-    trello = require('./routes/trello');
+    trello = require('./routes/trello'),
+    debug = require('./routes/debug');
 
 var app = express();
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use('/trello', trello);
+app.use('/debug', debug);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

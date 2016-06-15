@@ -8,7 +8,6 @@ var express = require('express'),
     router = express.Router(),
     bodyParser = require('body-parser'),
     queryString = require('query-string'),
-    mongo = require('mongodb').MongoClient,
     app = express();
 
 require('dotenv').config();
@@ -24,11 +23,15 @@ router.get('/', function(req, res) {
 });
 
 router.post('/', function (req, res) {
-    mongo.connect(mongoUrl, function(err, db) {
-        var collection = db.collection('headers');
-        collection.insert(req.headers);
-        db.close();
-    })
+    if(process.env.MODE === 'DEBUG') {
+        var mongo = require('mongodb').MongoClient;
+        mongo.connect(mongoUrl, function(err, db) {
+            var collection = db.collection('issues');
+            collection.insert({headers: req.headers, body: req.body});
+            db.close();
+        });
+    }
+
     var type = req.headers['x-gitlab-event'],
         trelloKey = req.query.key || process.env.TRELLO_KEY,
         trelloToken = req.query.token || process.env.TRELLO_TOKEN,
