@@ -17,7 +17,7 @@ var mongoUrl = process.env.MONGODB_URI;
 
 app.set('trello api host', 'api.trello.com');
 
-// app.use(bodyParser.raw());
+app.use(bodyParser.json());
 
 router.get('/', function(req, res) {
     res.send('This hooks to Trello');
@@ -44,11 +44,6 @@ router.post('/', function (req, res) {
         return;
     }
 
-    var body = '';
-    req.on('data', function(chunk) {
-        body += chunk.toString();
-    });
-
     var handler = '';
     switch(type) {
         case 'Issue Hook':
@@ -59,12 +54,10 @@ router.post('/', function (req, res) {
             return;
     }
 
-    req.on('end', function() {
-        handler(req, res);
-    });
+    handler(req, res);
 
     function handleIssue(req, res) {
-        var issue = JSON.parse(body),
+        var issue = req.body,
             cardData = {
                 key: trelloKey,
                 token: trelloToken,
