@@ -69,13 +69,15 @@ router.post('/', function (req, res) {
                 desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
             };
         
-        createCard(cardData, function(err, data) {
-            if(err) {
-                res.send('Error: ' + err.message);
-            } else {
-                res.send(data);
-            }
-        });
+        if(issue.object_attributes.action === 'open') {
+            createCard(cardData, function(err, data) {
+                if(err) {
+                    res.send('Error: ' + err.message);
+                } else {
+                    res.send(data);
+                }
+            });
+        }
     }
 
     function createCard(data, callback) {
