@@ -9,10 +9,11 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     queryString = require('query-string'),
     mongo = require('mongodb').MongoClient,
-    mongoUrl = 'mongodb://localhost:27017/gitlab',
     app = express();
 
 require('dotenv').config();
+
+var mongoUrl = process.env.MONGODB_URI;
 
 app.set('trello api host', 'api.trello.com');
 
