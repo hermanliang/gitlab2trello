@@ -8,6 +8,8 @@ var express = require('express'),
     router = express.Router(),
     bodyParser = require('body-parser'),
     queryString = require('query-string'),
+    mongo = require('mongodb').MongoClient,
+    mongoUrl = 'mongodb://localhost:27017/gitlab',
     app = express();
 
 require('dotenv').config();
@@ -21,6 +23,11 @@ router.get('/', function(req, res) {
 });
 
 router.post('/', function (req, res) {
+    mongo.connect(mongoUrl, function(err, db) {
+        var collection = db.collection('headers');
+        collection.insert(req.headers);
+        db.close();
+    })
     var type = req.headers['x-gitlab-event'],
         trelloKey = req.query.key || process.env.TRELLO_KEY,
         trelloToken = req.query.token || process.env.TRELLO_TOKEN,
