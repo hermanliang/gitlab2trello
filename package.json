@@ -17,7 +17,8 @@
     "mongoose": "4.5.0",
     "morgan": "~1.6.1",
     "query-string": "4.2.1",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "trello": "^0.5.1"
   },
   "devDependencies": {
     "nodemon": "1.9.2"

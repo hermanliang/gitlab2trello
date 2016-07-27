@@ -9,6 +9,8 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     queryString = require('query-string'),
     app = express();
+    
+var Trello = require("trello");
 
 require('dotenv').config();
 
@@ -65,9 +67,14 @@ router.post('/', function (req, res) {
                 key: trelloKey,
                 token: trelloToken,
                 idList: idList,
-                name: issue.project.name + ' - ' + issue.object_attributes.title,
-                desc: issue.object_attributes.description + "\n" + issue.object_attributes.url
+                name: issue.object_attributes.title + ' (#' + issue.object_attributes.iid + ') · Issues · '
+                    + issue.project.namespace + ' / ' + issue.project.name
+                    + ' GitLab',
+                desc: issue.object_attributes.description + "\n" + issue.object_attributes.url,
+                url: issue.object_attributes.url
             };
+        
+        console.log(issue);
         
         if(issue.object_attributes.action === 'open') {
             createCard(cardData, function(err, data) {
@@ -77,43 +84,29 @@ router.post('/', function (req, res) {
                     res.send(data);
                 }
             });
+        } else {
+            res.send('ignored');
         }
     }
 
     function createCard(data, callback) {
-        var formData = queryString.stringify(data);
-
-        var options = {
-                hostname: app.get('trello api host'),
-                path: '/1/cards',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Content-Length': formData.length
-                }
-            };
-
-        var req = https.request(options, function(res) {
-            var body = '';
-            res.on('data', function(chunk) {
-                body += chunk;
-            });
-
-            res.on('end', function() {
-                callback(null, body);
-            });
-
-            res.on('error', function(e) {
-                callback(e, null);
-            })
+        var trello = new Trello(data.key, data.token);
+        trello.addCard(data.name, data.desc, data.idList,
+        function (error, trelloCard) {
+            callback(error, trelloCard);
+            if (error) {
+                console.log('Could not add card:', error);
+            } else {
+                console.log('Added card:', trelloCard);
+                trello.addAttachmentToCard(trelloCard.id, data.url, function(error, trelloCard) {
+                    if (error) {
+                        console.log('Could not attach url: ', error);
+                    } else {
+                        console.log('url attached: ', trelloCard);
+                    }
+                });
+            }
         });
-
-        req.on('error', function(e) {
-            callback(e, null);
-        })
-
-        req.write(formData);
-        req.end();
     }
 
 });
