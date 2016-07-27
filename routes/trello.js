@@ -9,7 +9,7 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     queryString = require('query-string'),
     app = express();
-    
+
 var Trello = require("trello");
 
 require('dotenv').config();
@@ -69,13 +69,13 @@ router.post('/', function (req, res) {
                 idList: idList,
                 name: issue.object_attributes.title + ' (#' + issue.object_attributes.iid + ') · Issues · '
                     + issue.project.namespace + ' / ' + issue.project.name
-                    + ' GitLab',
+                    + ' · GitLab',
                 desc: issue.object_attributes.description + "\n" + issue.object_attributes.url,
                 url: issue.object_attributes.url
             };
-        
+
         console.log(issue);
-        
+
         if(issue.object_attributes.action === 'open') {
             createCard(cardData, function(err, data) {
                 if(err) {
