@@ -1,0 +1,26 @@
+{
+  "name": "GitLab2Trello",
+  "description": "GitLab-Trello integration service via webhook",
+  "keywords": [
+    "GitLab",
+    "Trello",
+    "Webhook"
+  ],
+  "repository": "https://github.com/wfe-herman/gitlab2trello",
+  "logo": "http://2.gravatar.com/avatar/d784cc7338cf427e95d859e8cc9b063d?s=150",
+  "env": {
+    "TRELLO_KEY": {
+      "description": "Get trello App key from https://trello.com/app-key",
+      "value": ""
+    },
+    "TRELLO_TOKEN": {
+      "description": "Get trello API token from https://trello.com/app-key",
+      "value": ""
+    },
+    "TRELLO_LIST": {
+      "description": "Trello idList value",
+      "value": ""
+    }
+  },
+  "image": "heroku/nodejs"
+}
